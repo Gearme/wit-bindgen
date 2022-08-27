@@ -1,5 +1,5 @@
 use anyhow::{bail, Result};
-use std::collections::HashSet;
+use indexmap::IndexSet;
 use std::fmt::Write;
 use wit_parser::{
     Enum, Expected, Flags, Interface, Record, Tuple, Type, TypeDefKind, TypeId, Union, Variant,
@@ -9,7 +9,7 @@ use wit_parser::{
 #[derive(Default)]
 pub struct InterfacePrinter {
     output: String,
-    declared: HashSet<TypeId>,
+    declared: IndexSet<TypeId>,
 }
 
 impl InterfacePrinter {
@@ -101,6 +101,9 @@ impl InterfacePrinter {
                         self.output.push('>');
                     }
                     TypeDefKind::Type(ty) => self.print_type_name(interface, ty)?,
+                    TypeDefKind::Future(_) => {
+                        todo!("interface has an unnamed future type")
+                    }
                     TypeDefKind::Stream(_) => {
                         todo!("interface has an unnamed stream type")
                     }
@@ -197,6 +200,7 @@ impl InterfacePrinter {
                         }
                         None => bail!("unnamed type in interface"),
                     },
+                    TypeDefKind::Future(_) => todo!("declare future"),
                     TypeDefKind::Stream(_) => todo!("declare stream"),
                 }
             }
@@ -247,7 +251,7 @@ impl InterfacePrinter {
             self.print_tuple_type(interface, tuple)?;
             self.output.push_str("\n\n");
         }
-        return Ok(());
+        Ok(())
     }
 
     fn declare_flags(&mut self, name: Option<&str>, flags: &Flags) -> Result<()> {
